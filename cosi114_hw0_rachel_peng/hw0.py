@@ -1,6 +1,7 @@
 import regex
+
 _RE_PUNC = regex.compile(r"^\p{p}$")
-_EM_DSAH = "-"
+_EM_DASH = "-"
 
 #1. Generating sentences
 #how to declare path variable?
