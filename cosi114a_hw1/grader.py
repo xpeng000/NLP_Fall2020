@@ -25,6 +25,7 @@ import sys
 import threading
 import unittest
 from functools import partial
+from typing import Any
 
 
 def points(n: int):
@@ -32,7 +33,7 @@ def points(n: int):
     return partial(_add_points, n=n)
 
 
-def _add_points(obj, n):
+def _add_points(obj: Any, n: int) -> Any:
     old_points = getattr(obj, "_points", None)
     assert not old_points, "Object already has a points attribute"
     obj._points = n
@@ -63,15 +64,18 @@ class Problem:
     def run_tests(self):
         """Run tests and populate results."""
         """Print the results of the tests and the grade for the problem."""
-        print(f"Grading {self._test_case.__name__}...")
+        print(f"Grading {self._test_case.__name__}")
         for test, weight in self.test_weights.items():
-            print(f"Running {test.__name__}...")
+            print(f"Running {test.__name__}")
             if test.__doc__:
                 print(test.__doc__)
             result = self.run(test)
             if result.wasSuccessful():
                 print(f"Points: {weight}/{weight}")
             else:
+                print()
+                print("Test failed with the error below, displayed between lines of ---.")
+                print("The expected value is given first, followed by the actual result.")
                 print("-" * 70)
                 # Get the error/failure
                 try:
@@ -82,8 +86,8 @@ class Problem:
                     print(result.failures[0][1])
                 except IndexError:
                     pass
-                print(f"Points: 0/{weight}")
                 print("-" * 70)
+                print(f"Points: 0/{weight}")
             print()
         print("=" * 70)
 

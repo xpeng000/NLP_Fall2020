@@ -1,5 +1,11 @@
 #! /usr/bin/env python
 
+"""
+Public tests for HW 1
+
+Version 1.1, released 9/14/2020
+"""
+
 import os
 import unittest
 from collections import defaultdict
@@ -409,9 +415,9 @@ class TestComparison(unittest.TestCase):
             ),
             intersection_only=False,
         )
-        self.assertAlmostEqual(0.011742218194332452, diff["#"])
-        self.assertAlmostEqual(0.011596386606100302, diff["the"])
-        self.assertAlmostEqual(0.00869943453675511, diff["chromatica"])
+        self.assertAlmostEqual(0.01179526361706696, diff["#"])
+        self.assertAlmostEqual(0.011647311103199175, diff["the"])
+        self.assertAlmostEqual(0.008741258741258742, diff["chromatica"])
 
     @points(3)
     def compare_unigram_probabilities_intersection(self) -> None:
@@ -424,9 +430,9 @@ class TestComparison(unittest.TestCase):
             ),
             intersection_only=True,
         )
-        self.assertAlmostEqual(0.011742218194332452, diff["#"])
-        self.assertAlmostEqual(0.011596386606100302, diff["the"])
-        self.assertAlmostEqual(0.004977785492666874, diff["love"])
+        self.assertAlmostEqual(0.01179526361706696, diff["#"])
+        self.assertAlmostEqual(0.011647311103199175, diff["the"])
+        self.assertAlmostEqual(0.005001338537094464, diff["love"])
 
     @points(3)
     def compare_bigram_probabilities(self) -> None:
