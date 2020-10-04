@@ -1,6 +1,6 @@
 # test_hw2.py
-# Version 1.1
-# 9/27/2020
+# Version 1.2
+# 10/1/2020
 
 import os
 import random
@@ -68,7 +68,7 @@ class TestSampler(SeedControlledTestCase):
 
     @points(3)
     def test_probability_tuples_values(self):
-        simple_dist = defaultdict(float, {"a": 0.5, "b": 0.4, "c": 0.1})
+        simple_dist = defaultdict(float, {"b": 0.4, "a": 0.5, "c": 0.1})
         sampler = Sampler(simple_dist)
         prob_tuples = sampler.probability_tuples()
         self.assertEqual([("a", 0.5), ("b", 0.4), ("c", 0.1)], prob_tuples)

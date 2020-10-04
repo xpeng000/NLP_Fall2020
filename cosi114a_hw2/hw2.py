@@ -1,6 +1,6 @@
 # HW 2 Stubs
-# Version 1.1
-# 9/27/2020
+# Version 1.2
+# 10/1/2020
 
 from typing import DefaultDict
 from collections import defaultdict
