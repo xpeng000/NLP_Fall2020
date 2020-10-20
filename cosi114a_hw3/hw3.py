@@ -3,7 +3,8 @@
 # 10/6/2020
 
 import json
-from collections import defaultdict
+import math
+from collections import defaultdict, Counter
 from math import log
 from typing import (
     Iterable,
@@ -104,7 +105,7 @@ def load_segmentation_instances(
 # Class to represent classification instances
 class ClassificationInstance:
     # DO NOT CHANGE THIS
-    def __init__(self, label: str, features: List[str]):
+    def __init__(self, label: str, features: List[str]) -> object:
         self.label = label
         self.features = features
 
@@ -112,93 +113,162 @@ class ClassificationInstance:
 ############################################################
 # Portion of the assignment that you should fill in
 
-
 def accuracy(predictions: Sequence[str], expected: Sequence[str]) -> float:
-    pass
-
+    if len(predictions) == 0 or len(expected) == 0 or len(predictions)!= len(expected):
+        raise ValueError("ValueError exception thrown: invalid input")
+    count = 0
+    for i in range(len(predictions)):
+        if predictions[i] == expected[i]:
+            count += 1
+    return count/len(predictions)
 
 def recall(predictions: Sequence[str], expected: Sequence[str], label: str) -> float:
-    pass
-
+    if len(predictions) == 0 or len(expected) == 0 or len(predictions) != len(expected):
+        raise ValueError("ValueError exception thrown: invalid input")
+    posLabels = 0
+    true_positive = 0
+    for i in range(len(expected)):
+        if expected[i] == label:
+            posLabels += 1  # the number of items should have the positive label
+            if expected[i] == predictions[i]:
+                true_positive += 1
+    if posLabels == 0:
+        return 0.0
+    return true_positive/posLabels
 
 def precision(predictions: Sequence[str], expected: Sequence[str], label: str) -> float:
-    pass
-
+    if len(predictions) == 0 or len(expected) == 0 or len(predictions) != len(expected):
+        raise ValueError("ValueError exception thrown: invalid input")
+    true_positive = 0
+    pred_positive = 0
+    for i in range(len(predictions)):
+        if predictions[i] == label:
+            pred_positive += 1  # the number of items we predicted as positive
+            if expected[i] == predictions[i]:
+                true_positive += 1
+    if pred_positive == 0:
+        return 0.0
+    return true_positive/pred_positive
 
 def f1(predictions: Sequence[str], expected: Sequence[str], label: str) -> float:
-    pass
-
+    if len(predictions) == 0 or len(expected) == 0 or len(predictions) != len(expected):
+        raise ValueError("ValueError exception thrown: invalid input")
+    prec = precision(predictions, expected, label)
+    rec = recall(predictions, expected, label)
+    if prec+rec == 0.0:
+        return 0.0
+    return 2*prec*rec/(prec+rec)
 
 class BaselineAirlineSentimentFeatureExtractor:
-    def extract_features(
-        self, instance: AirlineSentimentInstance
-    ) -> ClassificationInstance:
-        pass
-
+    def extract_features(self, instance: AirlineSentimentInstance) -> ClassificationInstance:
+        label = instance.label
+        sentences = instance.sentences
+        if len(sentences) == 0:
+            raise ValueError("ValueError exception thrown: invalid input")
+        dict = defaultdict()
+        for s in sentences:
+            for word in s:
+                dict[word.lower()] = 1  # give a random value for the key
+        l: List[str] = list(dict.keys())
+        x = ClassificationInstance(label, l)
+        return x
 
 class BaselineSegmentationFeatureExtractor:
-    def extract_features(
-        self, instance: SentenceSplitInstance
-    ) -> ClassificationInstance:
-        pass
-
+    def extract_features(self, instance: SentenceSplitInstance) -> ClassificationInstance:
+        label = instance.label
+        left_context = instance.left_context
+        right_context = instance.right_context
+        token = instance.token
+        features = ["split_tok=" + token, "right_tok=" + right_context, "left_tok=" + left_context]
+        x = ClassificationInstance(label, features)
+        return x
 
 class InstanceCounter:
     def __init__(self) -> None:
-        pass
+        self.size = 0  # number of instances
+        self.feature_num = defaultdict(int)  # unique label ==> total count of all the features (not unique) seen with
+        # the label
+        self.label_counts = defaultdict(int)  # label ==> frequency
+        self.feature_words = defaultdict(int)  # unique word ==> frequency
+        self.feature_counts = defaultdict(lambda: defaultdict(int))  # label  ==> feature_word ==> frequency
 
     def count_instances(self, instances: Iterable[ClassificationInstance]) -> None:
-        pass
+        for ins in instances:
+            self.size += 1
+            self.label_counts[ins.label] += 1
+            self.feature_num[ins.label] += len(ins.features)
+            for word in ins.features:
+                self.feature_words[word] += 1
+                self.feature_counts[ins.label][word] += 1
 
     def label_count(self, label: str) -> int:
-        pass
+        return self.label_counts[label]
 
     def total_labels(self) -> int:
-        pass
+        return self.size
 
     def conditional_feature_count(self, label: str, feature: str) -> int:
-        pass
+        return self.feature_counts[label][feature]
 
     def labels(self) -> List[str]:
-        pass
+        return list(self.label_counts.keys())
 
     def feature_vocab_size(self) -> int:
-        pass
+        return len(self.feature_words)
 
     def total_feature_count_for_class(self, label: str) -> int:
-        pass
+        return self.feature_num[label]
 
 
 class NaiveBayesClassifier:
     def __init__(self, k):
-        pass
+        self.model = InstanceCounter()
+        self.k = k
 
     def train(self, instances: Iterable[ClassificationInstance]) -> None:
-        pass
+        # Get probabilities through counting events and labels
+        self.model.count_instances(instances)
 
     def classify(self, features: List[str]) -> str:
-        pass
+        label_dict = dict()
+        for label in self.model.label_counts.keys():
+            label_dict[label] = self.prob(features, label)
+        label_list = label_dict.items()
+        max_label = max(label_list, key=lambda x: x[1])
+        return str(max_label[0])
 
     def prob(self, features: List[str], label: str) -> float:
-        pass
+        #  probability is in the log-space
+        prob_sum = self.prior_prob(label)
+        for word in features:
+            prob_sum += self.likelihood_prob(word, label)
+        return prob_sum
 
     def prior_prob(self, label: str) -> float:
-        pass
+        #  return the probability in the log-space
+        if self.model.size == 0:
+            raise ValueError("ValueError exception thrown: invalid input")
+        return math.log(self.model.label_counts[label]/self.model.size)
 
     def likelihood_prob(self, feature: str, label) -> float:
-        pass
+        #  return the probability in the log-space
+        feature_k = self.model.conditional_feature_count(label, feature)+self.k
+        all_feature = self.model.total_feature_count_for_class(label)
+        if all_feature == 0:
+            return 0.0
+        return math.log(feature_k/(all_feature+self.k*self.model.feature_vocab_size()))
 
-    def test(
-        self, instances: Iterable[ClassificationInstance]
-    ) -> Tuple[List[str], List[str]]:
-        pass
-
+    def test(self, instances: Iterable[ClassificationInstance]) -> Tuple[List[str], List[str]]:
+        expected = list()
+        predicted = list()
+        for ins in instances:
+            expected.append(ins.label)
+            predicted.append(self.classify(ins.features))
+        return predicted, expected
 
 class TunedSegmentationFeatureExtractor:
     def __init__(self):
         self.k = None
 
-    def extract_features(
-        self, instance: SentenceSplitInstance
-    ) -> ClassificationInstance:
+    def extract_features(self, instance: SentenceSplitInstance) -> ClassificationInstance:
         pass
