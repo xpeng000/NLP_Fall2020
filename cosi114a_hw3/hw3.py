@@ -114,7 +114,7 @@ class ClassificationInstance:
 # Portion of the assignment that you should fill in
 
 def accuracy(predictions: Sequence[str], expected: Sequence[str]) -> float:
-    if len(predictions) == 0 or len(expected) == 0 or len(predictions)!= len(expected):
+    if len(predictions) == 0 or len(expected) == 0 or len(predictions) != len(expected):
         raise ValueError("ValueError exception thrown: invalid input")
     count = 0
     for i in range(len(predictions)):
@@ -230,12 +230,13 @@ class NaiveBayesClassifier:
         self.model.count_instances(instances)
 
     def classify(self, features: List[str]) -> str:
-        label_dict = dict()
-        for label in self.model.label_counts.keys():
-            label_dict[label] = self.prob(features, label)
-        label_list = label_dict.items()
-        max_label = max(label_list, key=lambda x: x[1])
-        return str(max_label[0])
+        if len(features) != 0:
+            label_dict = dict()
+            for label in self.model.label_counts.keys():
+                label_dict[label] = self.prob(features, label)
+            label_list = label_dict.items()
+            max_label = max(label_list, key=lambda x: x[1])
+            return str(max_label[0])
 
     def prob(self, features: List[str], label: str) -> float:
         #  probability is in the log-space
@@ -247,14 +248,14 @@ class NaiveBayesClassifier:
     def prior_prob(self, label: str) -> float:
         #  return the probability in the log-space
         if self.model.size == 0:
-            raise ValueError("ValueError exception thrown: invalid input")
+            return 0.0
         return math.log(self.model.label_counts[label]/self.model.size)
 
     def likelihood_prob(self, feature: str, label) -> float:
         #  return the probability in the log-space
         feature_k = self.model.conditional_feature_count(label, feature)+self.k
         all_feature = self.model.total_feature_count_for_class(label)
-        if all_feature == 0:
+        if all_feature+self.k*self.model.feature_vocab_size() == 0:
             return 0.0
         return math.log(feature_k/(all_feature+self.k*self.model.feature_vocab_size()))
 
@@ -267,8 +268,16 @@ class NaiveBayesClassifier:
         return predicted, expected
 
 class TunedSegmentationFeatureExtractor:
+    # I removed right context and set k value to 0.001
+
     def __init__(self):
-        self.k = None
+        self.k = 0.001
 
     def extract_features(self, instance: SentenceSplitInstance) -> ClassificationInstance:
-        pass
+        label = instance.label
+        left_context = instance.left_context
+        # right_context = instance.right_context
+        token = instance.token
+        features = ["split_tok=" + token, "left_tok=" + left_context]
+        x = ClassificationInstance(label, features)
+        return x
