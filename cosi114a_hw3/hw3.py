@@ -265,7 +265,7 @@ class NaiveBayesClassifier:
         for ins in instances:
             expected.append(ins.label)
             predicted.append(self.classify(ins.features))
-        return predicted, expected
+        return (predicted, expected)
 
 class TunedSegmentationFeatureExtractor:
     # I removed right context and set k value to 0.001
