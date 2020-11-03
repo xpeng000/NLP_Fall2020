@@ -1,3 +1,8 @@
-# COSI114a
+# Natural Language Processing I
 
-#### This is a private repo that stores all my python homeworks for COSI 114a - NLP, Fall 2020 at Brandeis University. 
+### Programming assignments in python for COSI 114a: Natural Language Processing I, at Brandeis University. 
+
+### Topics include:
+#### HW1. N-gram model (unigram, bigram, and trigrams) implementations and basic probability theories
+#### HW2. Sentence generator from sampling 
+#### HW3. Sentiment analysis and classification on tweets using Naive Bayes Classifier
